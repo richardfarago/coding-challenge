@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class WorkerService {
-  getHello(): string {
-    return 'Hello World!';
+
+  start(url): string {
+    return "I will start fetching: " + url
   }
 }
