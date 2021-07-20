@@ -1,6 +1,7 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
+import { Cache } from 'cache-manager'
 
 @Injectable()
 export class AppService {
@@ -9,6 +10,7 @@ export class AppService {
 
   constructor(
     @Inject('WORKER') private client: ClientProxy,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) { }
 
   start(data): Observable<any> {
@@ -20,7 +22,7 @@ export class AppService {
   }
 
   saveData(data) {
-    this.data.push(data)
-    console.log(this.data)
+    this.data.push(data.quote)
+    this.cacheManager.set('api-data', this.data)
   }
 }

@@ -32,7 +32,7 @@ export class WorkerService {
       }
 
       response = await this.httpService.get(url).toPromise()
-      await this.client.emit('data', response.data)
+      await this.client.emit('data', response.data).toPromise()
 
     }, 300000)
 
