@@ -6,8 +6,6 @@ import { Cache } from 'cache-manager'
 @Injectable()
 export class AppService {
 
-  private data: any[] = []
-
   constructor(
     @Inject('WORKER') private client: ClientProxy,
     @Inject(CACHE_MANAGER) private cacheManager: Cache
@@ -21,8 +19,13 @@ export class AppService {
     return this.client.send('stop', data)
   }
 
-  saveData(data) {
-    this.data.push(data.quote)
-    this.cacheManager.set('api-data', this.data)
+  async saveData(data): Promise<void> {
+    let array: string[] = await this.cacheManager.get('api-data')
+    array.push(data.quote)
+    this.cacheManager.set('api-data', array)
+  }
+
+  getData(): Promise<string[]> {
+    return this.cacheManager.get('api-data')
   }
 }

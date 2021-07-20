@@ -8,7 +8,7 @@ export class WorkerController {
 
   //Request-response
   @MessagePattern('start')
-  start(data: any) {
+  start(data: any): any {
     const url = data.url
     return this.workerService.start(url);
   }

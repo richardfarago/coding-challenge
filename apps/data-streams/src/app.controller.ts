@@ -20,7 +20,12 @@ export class AppController {
   }
 
   @EventPattern('data')
-  saveData(data: any) {
-    return this.appService.saveData(data)
+  saveData(data: any): void {
+    this.appService.saveData(data)
+  }
+
+  @Get('data')
+  getData(): Promise<string[]> {
+    return this.appService.getData()
   }
 }
