@@ -1,10 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Inject, Injectable } from '@nestjs/common';
+import { Client, ClientProxy, Transport } from '@nestjs/microservices';
 
 @Injectable()
 export class WorkerService {
 
-  start(url): string {
-    return "I will start fetching: " + url
+  constructor(@Inject('DATA_STREAMS') private client: ClientProxy) { }
+
+  start(url) {
+    //return "Start fetching: " + url
+    console.log('Sending data...')
+    return this.client.send('data', {})
+  }
+
+  stop(url): string {
+    return "Stop fetching: " + url
   }
 }

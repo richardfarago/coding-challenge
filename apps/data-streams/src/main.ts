@@ -1,18 +1,22 @@
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
 
 const initMicroservice = async (app: INestApplication) => {
 
+  const configService = app.get(ConfigService);
+
+  const options = configService.get('rmq_datastream_options');
+  const transport = Transport.RMQ
+
   app.connectMicroservice({
-    // Setup communication protocol here
-    transport: Transport.TCP,
-    options: {
-      host: 'localhost',
-      port: 3001,
-    },
-  });
+
+    transport: transport,
+    options: options
+
+  }, {});
 
   await app.startAllMicroservicesAsync();
 };

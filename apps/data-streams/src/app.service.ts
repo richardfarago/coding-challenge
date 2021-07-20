@@ -9,7 +9,11 @@ export class AppService {
   ) { }
 
   start(data): Observable<any> {
-    //Send message to microservice 
+    console.log('Sending command...')
     return this.client.send('start', data)
+  }
+
+  stop(data): Observable<any> {
+    return this.client.send('stop', data)
   }
 }
