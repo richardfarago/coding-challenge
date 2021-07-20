@@ -21,7 +21,7 @@ export class AppController {
   }
 
   @MessagePattern('data')
-  saveResults() {
-    return 'Saving data...'
+  saveData(data: any) {
+    return this.appService.saveData(data)
   }
 }

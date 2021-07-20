@@ -4,6 +4,9 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class AppService {
+
+  private data: any[] = []
+
   constructor(
     @Inject('WORKER') private client: ClientProxy,
   ) { }
@@ -15,5 +18,11 @@ export class AppService {
 
   stop(data): Observable<any> {
     return this.client.send('stop', data)
+  }
+
+  saveData(data) {
+    console.log('Saving data...')
+    this.data.push(data)
+    return 'Saving data'
   }
 }
