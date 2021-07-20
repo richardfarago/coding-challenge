@@ -12,7 +12,6 @@ export class AppService {
   ) { }
 
   start(data): Observable<any> {
-    console.log('Sending command...')
     return this.client.send('start', data)
   }
 
@@ -21,8 +20,7 @@ export class AppService {
   }
 
   saveData(data) {
-    console.log('Saving data...')
     this.data.push(data)
-    return 'Saving data'
+    console.log(this.data)
   }
 }

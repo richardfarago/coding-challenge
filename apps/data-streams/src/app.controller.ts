@@ -9,8 +9,7 @@ export class AppController {
 
   @Post('start')
   start(): Observable<any> {
-    console.log('Request arrived...')
-    const data = { url: 'URL' }
+    const data = { url: 'https://api.kanye.rest/' }
     return this.appService.start(data)
   }
 
@@ -20,7 +19,7 @@ export class AppController {
     return this.appService.stop(data)
   }
 
-  @MessagePattern('data')
+  @EventPattern('data')
   saveData(data: any) {
     return this.appService.saveData(data)
   }

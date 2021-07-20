@@ -7,10 +7,7 @@ import config from '../../../config'
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      load: [config],
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ load: [config], isGlobal: true }),
   ],
   controllers: [AppController],
   providers: [

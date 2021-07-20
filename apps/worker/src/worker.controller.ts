@@ -9,14 +9,13 @@ export class WorkerController {
   //Request-response
   @MessagePattern('start')
   start(data: any) {
-    console.log('Command arrived, fetching...')
     const url = data.url
     return this.workerService.start(url);
   }
 
   @MessagePattern('stop')
-  end(data: any): string {
-    const url = data.url
-    return this.workerService.stop(url);
+  end(): string {
+    console.log('Command arrived, stopping...')
+    return this.workerService.stop();
   }
 }
