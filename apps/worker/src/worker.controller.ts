@@ -15,7 +15,6 @@ export class WorkerController {
 
   @MessagePattern('stop')
   end(): string {
-    console.log('Command arrived, stopping...')
     return this.workerService.stop();
   }
 }

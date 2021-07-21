@@ -19,7 +19,7 @@ export class AppService {
     return this.client.send('stop', data)
   }
 
-  async saveData(data): Promise<void> {
+  async saveData(data: any): Promise<void> {
     let array: string[] = await this.cacheManager.get('api-data') || []
     array.push(data.quote)
     this.cacheManager.set('api-data', array)

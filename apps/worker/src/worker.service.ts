@@ -16,7 +16,6 @@ export class WorkerService {
       this.intervalId = setInterval(async () => {
         this.fetchAndEmit(url)
       }, 300000)
-
       //Immediate call since interval makes the first iteration after the timeout
       return this.fetchAndEmit(url)
     }

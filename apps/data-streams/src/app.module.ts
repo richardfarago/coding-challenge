@@ -9,7 +9,7 @@ import config from '../../../config'
 @Module({
   imports: [
     ConfigModule.forRoot({ load: [config], isGlobal: true }),
-    CacheModule.registerAsync({
+    CacheModule.register({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => (configService.get('redis_options')),

@@ -23,7 +23,6 @@ const validationOptions: ValidationPipeOptions = {
   controllers: [WorkerController],
   providers: [
     WorkerService,
-    { provide: APP_PIPE, useValue: new ValidationPipe(validationOptions) },
     {
       provide: 'DATA_STREAMS',
       inject: [ConfigService],
@@ -37,7 +36,8 @@ const validationOptions: ValidationPipeOptions = {
           options: options,
         })
       }
-    }
-  ],
+    },
+    { provide: APP_PIPE, useValue: new ValidationPipe(validationOptions) },
+  ]
 })
 export class WorkerModule { }
