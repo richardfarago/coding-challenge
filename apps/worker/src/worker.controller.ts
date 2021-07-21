@@ -8,8 +8,8 @@ export class WorkerController {
   constructor(private readonly workerService: WorkerService) { }
 
   @MessagePattern('start')
-  start(@Payload() data: UrlDto): string {
-    const url = data.url
+  start(@Payload() data: UrlDto): any {
+    const url: string = data.url
     return this.workerService.start(url);
   }
 

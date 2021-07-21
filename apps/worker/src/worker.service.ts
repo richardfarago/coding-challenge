@@ -10,15 +10,15 @@ export class WorkerService {
     private httpService: HttpService
   ) { }
 
-  start(url): string {
+  start(url: string): any {
 
     if (!this.intervalId) {
-      //Immediate call since interval makes the first iteration after the timeout
-      this.fetchAndEmit(url)
       this.intervalId = setInterval(async () => {
         this.fetchAndEmit(url)
       }, 300000)
-      return 'Ok'
+
+      //Immediate call since interval makes the first iteration after the timeout
+      return this.fetchAndEmit(url)
     }
     return 'Already fetching'
   }
@@ -33,11 +33,19 @@ export class WorkerService {
     return "Nothing to stop"
   }
 
-  private async fetchAndEmit(url) {
+  private async fetchAndEmit(url: string): Promise<any> {
 
-    let response: any;
-    response = await this.httpService.get('url').toPromise();
-    this.client.emit('data', response.data);
+    return new Promise(async (resolve, reject) => {
+      try {
 
+        let response: any;
+        response = await this.httpService.get(url).toPromise();
+        await this.client.emit('data', response.data).toPromise();
+        resolve('Ok')
+
+      } catch (err) {
+        reject(err)
+      }
+    })
   }
 }
