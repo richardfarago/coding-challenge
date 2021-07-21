@@ -1,11 +1,11 @@
-import { INestApplication, INestMicroservice } from '@nestjs/common';
+import { CacheModule, INestApplication, INestMicroservice } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
 import * as request from 'supertest';
 
 import { AppModule } from '../src/app.module';
 import { WorkerModule } from '../../worker/src/worker.module';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { WorkerService } from '../../worker/src/worker.service';
 import { AppService } from '../src/app.service';
 
@@ -19,7 +19,14 @@ let apiClient: ClientProxy
 
 async function createApi() {
   const fixture: TestingModule = await Test.createTestingModule({
-    imports: [AppModule],
+    imports: [
+      AppModule,
+      CacheModule.registerAsync({
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: async (configService: ConfigService) => await (configService.get('redis_options')),
+      }),
+    ],
     providers: [
       {
         provide: 'WORKER',
@@ -142,15 +149,11 @@ describe('e2e', () => {
     it(`/GET data`, async () => {
       jest.spyOn(appService, 'getData')
       await request(api.getHttpServer()).post('/start')
-      let response
+      let response = await request(api.getHttpServer()).get('/data').expect(200).then(res => res)
+      expect(Array.isArray(response.body)).toBe(true)
+      expect(appService.getData).toHaveBeenCalled()
+      await request(api.getHttpServer()).post('/stop')
 
-      setTimeout(async () => {
-        response = await request(api.getHttpServer()).get('/data').expect(200).then(res => res)
-        expect(response.data).toBe(Array)
-        expect(appService.getData).toHaveBeenCalled()
-
-        await request(api.getHttpServer()).post('/stop')
-      }, 2000)
     });
   })
 });
