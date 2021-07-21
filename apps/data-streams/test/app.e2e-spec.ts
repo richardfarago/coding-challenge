@@ -1,6 +1,6 @@
 import { INestApplication, INestMicroservice } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Transport } from '@nestjs/microservices';
+import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
 import * as request from 'supertest';
 
 import { AppModule } from '../src/app.module';
@@ -14,10 +14,28 @@ let api: INestApplication;
 let worker: INestMicroservice;
 let workerService: WorkerService;
 let appService: AppService
+let workerClient: ClientProxy
+let apiClient: ClientProxy
 
 async function createApi() {
   const fixture: TestingModule = await Test.createTestingModule({
-    imports: [AppModule]
+    imports: [AppModule],
+    providers: [
+      {
+        provide: 'WORKER',
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => {
+
+          const options = configService.get('rmq_worker_options');
+          const transport = Transport.RMQ
+
+          return ClientProxyFactory.create({
+            transport: transport,
+            options: options,
+          })
+        }
+      }
+    ]
   }).compile();
 
   const app = fixture.createNestApplication();
@@ -25,6 +43,7 @@ async function createApi() {
 
   configService = app.get(ConfigService)
   appService = app.get(AppService)
+  workerClient = app.get('WORKER')
 
   app.connectMicroservice({ transport: Transport.RMQ, options: configService.get('rmq_datastream_options') })
   await app.startAllMicroservicesAsync();
@@ -35,6 +54,22 @@ async function createApi() {
 async function createWorker() {
   const fixture: TestingModule = await Test.createTestingModule({
     imports: [WorkerModule],
+    providers: [
+      {
+        provide: 'DATA_STREAMS',
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => {
+
+          const options = configService.get('rmq_datastream_options');
+          const transport = Transport.RMQ
+
+          return ClientProxyFactory.create({
+            transport: transport,
+            options: options,
+          })
+        }
+      },
+    ]
   }).compile();
 
   const app = fixture.createNestMicroservice({
@@ -42,9 +77,12 @@ async function createWorker() {
     options: configService.get('rmq_worker_options')
   });
 
+
   await app.init()
   await app.listenAsync();
+
   workerService = app.get(WorkerService)
+  apiClient = app.get('DATA_STREAMS')
 
   return app;
 }
@@ -53,9 +91,13 @@ describe('e2e', () => {
   beforeAll(async () => {
     api = await createApi()
     worker = await createWorker()
+    await apiClient.connect()
+    await workerClient.connect()
   });
 
   afterAll(async () => {
+    await apiClient.close()
+    await workerClient.close()
     await api.close()
     await worker.close()
   });
@@ -71,54 +113,44 @@ describe('e2e', () => {
 
   describe('Start fetching', () => {
 
-    it(`/POST start`, () => {
-      return request(api.getHttpServer())
+    it(`/POST start`, async () => {
+      jest.spyOn(appService, 'saveData')
+      jest.spyOn(workerService, 'start')
+      await request(api.getHttpServer())
         .post('/start')
         .expect(201)
         .expect('Ok')
-    });
-
-    it(`should have been called`, async () => {
-      jest.spyOn(workerService, 'start')
-      await request(api.getHttpServer()).post('/start')
+      expect(appService.saveData).toHaveBeenCalled()
       expect(workerService.start).toHaveBeenCalled()
     });
-
-    it(`should have been called`, async () => {
-      jest.spyOn(appService, 'saveData')
-      await request(api.getHttpServer()).post('/start')
-      expect(appService.saveData).toHaveBeenCalled()
-    });
-
   })
 
   describe('Stop fetching', () => {
 
-    it(`/POST stop`, () => {
-      return request(api.getHttpServer())
+    it(`/POST stop`, async () => {
+      jest.spyOn(workerService, 'stop')
+      await request(api.getHttpServer())
         .post('/stop')
         .expect(201)
         .expect('Ok')
-    });
-
-    it(`should have been called`, async () => {
-      jest.spyOn(workerService, 'stop')
-      await request(api.getHttpServer()).post('/stop')
-      expect(workerService.start).toHaveBeenCalled()
+      expect(workerService.stop).toHaveBeenCalled()
     });
   })
 
-  // describe('Get data', () => {
+  describe('Get data', () => {
 
-  //   it(`/GET data`, async () => {
-  //     let response = await request(api.getHttpServer())
-  //       .get('/data')
-  //       .expect(200)
-  //       .then(res => res)
+    it(`/GET data`, async () => {
+      jest.spyOn(appService, 'getData')
+      await request(api.getHttpServer()).post('/start')
+      let response
 
-  //     console.log(response)
-  //     expect(response).toBe(Array)
-  //   });
+      setTimeout(async () => {
+        response = await request(api.getHttpServer()).get('/data').expect(200).then(res => res)
+        expect(response.data).toBe(Array)
+        expect(appService.getData).toHaveBeenCalled()
 
-  // })
+        await request(api.getHttpServer()).post('/stop')
+      }, 2000)
+    });
+  })
 });
