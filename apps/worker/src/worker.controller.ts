@@ -1,14 +1,14 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { WorkerService } from './worker.service';
-import { EventPattern, MessagePattern } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { UrlDto } from './url-data.dto';
 
 @Controller()
 export class WorkerController {
   constructor(private readonly workerService: WorkerService) { }
 
-  //Request-response
   @MessagePattern('start')
-  start(data: any): any {
+  start(@Payload() data: UrlDto): string {
     const url = data.url
     return this.workerService.start(url);
   }

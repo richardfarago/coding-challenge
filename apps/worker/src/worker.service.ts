@@ -10,7 +10,7 @@ export class WorkerService {
     private httpService: HttpService
   ) { }
 
-  start(url) {
+  start(url): string {
 
     if (!this.intervalId) {
       //Immediate call since interval makes the first iteration after the timeout

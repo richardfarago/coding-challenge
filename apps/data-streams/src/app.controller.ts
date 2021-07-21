@@ -9,7 +9,8 @@ export class AppController {
 
   @Post('start')
   start(): Observable<any> {
-    const data = { url: 'https://api.kanye.rest/' }
+    // const data = { url: 'https://api.kanye.rest/' }
+    const data = { url: 'das' }
     return this.appService.start(data)
   }
 
