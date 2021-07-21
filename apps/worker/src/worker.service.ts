@@ -4,43 +4,40 @@ import { ClientProxy } from '@nestjs/microservices';
 @Injectable()
 export class WorkerService {
 
-  private is_fetching: Boolean = false
+  private intervalId: any = null
   constructor(
     @Inject('DATA_STREAMS') private client: ClientProxy,
     private httpService: HttpService
   ) { }
 
-  async start(url) {
+  start(url) {
 
-    //Return if interval is already executing
-    if (this.is_fetching) {
-      return "Already fetching"
+    if (!this.intervalId) {
+      //Immediate call since interval makes the first iteration after the timeout
+      this.fetchAndEmit(url)
+      this.intervalId = setInterval(async () => {
+        this.fetchAndEmit(url)
+      }, 300000)
+      return 'Ok'
     }
-
-    let response: any
-
-    //Initial call immediately
-    response = await this.httpService.get(url).toPromise()
-    await this.client.emit('data', response.data)
-
-    this.is_fetching = true
-    let interval = setInterval(async () => {
-
-      //Stop fetching if is_fetching is false
-      if (!this.is_fetching) {
-        clearInterval(interval)
-      }
-
-      response = await this.httpService.get(url).toPromise()
-      await this.client.emit('data', response.data).toPromise()
-
-    }, 300000)
-
-    return 'Ok'
+    return 'Already fetching'
   }
 
   stop(): string {
-    this.is_fetching = false
-    return "Ok"
+
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+      this.intervalId = null
+      return 'Ok'
+    }
+    return "Nothing to stop"
+  }
+
+  private async fetchAndEmit(url) {
+
+    let response: any;
+    response = await this.httpService.get('url').toPromise();
+    this.client.emit('data', response.data);
+
   }
 }

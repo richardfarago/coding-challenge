@@ -19,13 +19,13 @@ export class AppController {
     return this.appService.stop(data)
   }
 
-  @EventPattern('data')
-  saveData(data: any): void {
-    this.appService.saveData(data)
-  }
-
   @Get('data')
   getData(): Promise<string[]> {
     return this.appService.getData()
+  }
+
+  @EventPattern('data')
+  saveData(data: any): void {
+    this.appService.saveData(data)
   }
 }
